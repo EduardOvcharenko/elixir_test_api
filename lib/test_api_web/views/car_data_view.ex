@@ -19,4 +19,15 @@ defmodule TestApiWeb.CarDataView do
       is_electric: car_data.is_electric
     }
   end
+
+  def render("car_data_create_view.json", %{car_data: car_data}) do
+    %{
+      id: car_data.id,
+      model: car_data.model,
+      year: car_data.year,
+      body_type: car_data.body_type,
+      car_brand_id: car_data.car_brand_id,
+      is_electric: car_data.is_electric
+    }
+  end
 end

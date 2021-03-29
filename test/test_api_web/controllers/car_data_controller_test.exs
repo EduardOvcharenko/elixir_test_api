@@ -165,6 +165,7 @@ defmodule TestApiWeb.CarDataControllerTest do
   end
 
   @create_attrs %{
+    id: "468234b8-e990-4b26-8936-4e4ef20431e9",
     body_type: "coupe",
     car_brand_id: "abcf229c-be01-46a4-b977-bce4ce35b5db",
     is_electric: true,
@@ -172,20 +173,64 @@ defmodule TestApiWeb.CarDataControllerTest do
     year: 2011
   }
 
-  @invalid_attrs %{car_brand_id: "abcf229c-be01-46a4-b977-bce4ce35b5db", body_type: "", is_electric: false, model: "", year: ""}
+  @invalid_attrs_is_electric %{car_brand_id: "abcf229c-be01-46a4-b977-bce4ce35b5db", body_type: "sedan", is_electric: 1, model: "F40", year: "1994"}
+  @invalid_attrs_body_type %{car_brand_id: "abcf229c-be01-46a4-b977-bce4ce35b5db", body_type: "aaa", is_electric: false, model: "F40", year: "1994"}
+  @invalid_attrs_year %{car_brand_id: "abcf229c-be01-46a4-b977-bce4ce35b5db", body_type: "sedan", is_electric: false, model: "F40", year: 1}
 
   describe "create car_data" do
     test "renders car_data when data is valid", %{conn: conn} do
+
       conn = post(conn, Routes.car_data_path(conn, :create), @create_attrs)
-      assert build_conn(:post, "/")
-      |> put_resp_content_type("application/json")
-      |> resp(200, "{}")
-      |> json_response(:ok) == %{}
+      assert %{"id" => id,
+        "body_type" => "coupe",
+        "is_electric" => true,
+        "car_brand_id" => "abcf229c-be01-46a4-b977-bce4ce35b5db",
+        "model" => "4000",
+        "year" => 2011
+      } = json_response(conn, 201)
+
+      result = Repo.get(CarData, @create_attrs.id)
+      result = %{"id" => id,
+        "body_type" => "coupe",
+        "is_electric" => true,
+        "car_brand_id" => "abcf229c-be01-46a4-b977-bce4ce35b5db",
+        "model" => "4000",
+        "year" => 2011
+      }
     end
 
-    test "renders errors when data is invalid", %{conn: conn} do
-      conn = post(conn, Routes.car_data_path(conn, :create), @invalid_attrs)
-      assert json_response(conn, 422)["errors"] != %{}
+    test "renders errors when data is invalid is electric", %{conn: conn} do
+      conn = post(conn, Routes.car_data_path(conn, :create), @invalid_attrs_is_electric)
+      assert %{"errors" => %{"invalid" => [%{
+        "entry" => "is_electric",
+        "entry_type" => "json_data_property",
+          "rules" => %{
+            "description" => "is invalid",
+            "params" => "boolean",
+            "rule" => "cast"}}]}} = json_response(conn, 422)
+    end
+
+    test "renders errors when data is invalid body type", %{conn: conn} do
+      conn = post(conn, Routes.car_data_path(conn, :create), @invalid_attrs_body_type)
+      assert %{"errors" => %{"invalid" => [%{
+        "entry" => "body_type",
+        "entry_type" => "json_data_property",
+          "rules" => %{
+            "description" => "is invalid",
+            "params" => ["sedan", "coupe", "pickup"],
+            "rule" => "inclusion"}}]}} = json_response(conn, 422)
+    end
+
+    test "renders errors when data is invalid year", %{conn: conn} do
+      result_enum = Enum.to_list(1886..DateTime.utc_now().year)
+      conn = post(conn, Routes.car_data_path(conn, :create), @invalid_attrs_year)
+      assert %{"errors" => %{"invalid" => [%{
+        "entry" => "year",
+        "entry_type" => "json_data_property",
+          "rules" => %{
+            "description" => "is invalid",
+            "params" => result_enum,
+            "rule" => "inclusion"}}]}} = json_response(conn, 422)
     end
   end
 end

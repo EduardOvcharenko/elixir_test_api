@@ -17,7 +17,7 @@ config :test_api, TestApi.Repo,
 # with webpack to recompile .js and .css sources.
 config :test_api, TestApiWeb.Endpoint,
   http: [port: 4000],
-  debug_errors: true,
+  debug_errors: false,
   code_reloader: true,
   check_origin: false,
   watchers: []

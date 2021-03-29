@@ -144,6 +144,10 @@ defmodule TestApi.Schema do
     |> Repo.all()
   end
 
+  def list_car_data do
+    Repo.all(CarData)
+  end
+
   @doc """
   Gets a single car_data.
 
@@ -175,7 +179,7 @@ defmodule TestApi.Schema do
   def create_car_data(attrs \\ %{}) do
     %CarData{}
     |> CarData.changeset(attrs)
-    |> Repo.insert()
+    |> Repo.insert() #returning: [:id]
   end
 
   @doc """

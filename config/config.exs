@@ -14,6 +14,11 @@ config :test_api,
        TestApi.Repo,
        migration_primary_key: [type: :uuid]
 
+config :test_api,
+        TestApi.Schema.CarData,
+        car_data_min_year: 1886,
+        body_type_enum: ["sedan", "coupe", "pickup"]
+
 # Configures the endpoint
 config :test_api, TestApiWeb.Endpoint,
   url: [host: "localhost"],

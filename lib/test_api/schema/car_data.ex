@@ -18,7 +18,7 @@ defmodule TestApi.Schema.CarData do
     car_data
     |> cast(attrs, [:car_brand_id, :model, :year, :body_type, :is_electric])
     |> validate_required([:car_brand_id, :model, :year, :body_type, :is_electric])
-    |> validate_inclusion(:year, 1886..DateTime.utc_now().year)
-    |> validate_inclusion(:body_type, ["sedan", "coupe", "pickup"])
+    |> validate_inclusion(:year,  Enum.to_list(Application.get_env(:test_api,  TestApi.Schema.CarData)[:car_data_min_year]..DateTime.utc_now().year))
+    |> validate_inclusion(:body_type,   Application.get_env(:test_api,  TestApi.Schema.CarData)[:body_type_enum])
   end
 end

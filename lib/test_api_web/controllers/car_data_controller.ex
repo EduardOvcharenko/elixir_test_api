@@ -12,10 +12,10 @@ defmodule TestApiWeb.CarDataController do
   end
 
   def create(conn, params) do
-    with {:ok, %CarData{}} <- Schema.create_car_data(params) do
+    with {:ok, %CarData{} = car_data} <- Schema.create_car_data(params) |> IO.inspect(label: "errorrr") do
       conn
       |> put_status(:created)
-      |> send_resp(200,"")
+      |> render("car_data_create_view.json", car_data: car_data)
     end
   end
 end
