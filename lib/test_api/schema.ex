@@ -105,41 +105,45 @@ defmodule TestApi.Schema do
   alias TestApi.Schema.CarData
 
   defp add_brand_filter(conditions, params) do
-    brand_name = Map.get(params,"brand")
-      if brand_name != nil do
-        dynamic([c,b], b.name == ^brand_name and ^conditions)
-      else
-        conditions
-      end
+    brand_name = Map.get(params, "brand")
+
+    if brand_name != nil do
+      dynamic([c, b], b.name == ^brand_name and ^conditions)
+    else
+      conditions
+    end
   end
 
   defp add_body_type_filter(conditions, params) do
-    body_type = Map.get(params,"body_type")
+    body_type = Map.get(params, "body_type")
+
     if body_type != nil do
-      dynamic([c,b], c.body_type == ^body_type and ^conditions)
+      dynamic([c, b], c.body_type == ^body_type and ^conditions)
     else
       conditions
     end
   end
 
   defp add_is_electric_filter(conditions, params) do
-    is_electric = Map.get(params,"is_electric")
+    is_electric = Map.get(params, "is_electric")
+
     if is_electric != nil do
-      dynamic([c,b], c.is_electric == ^is_electric and ^conditions)
+      dynamic([c, b], c.is_electric == ^is_electric and ^conditions)
     else
       conditions
     end
   end
 
   def list_car_data(params) do
-    conditions = dynamic(true)
-    |> add_body_type_filter(params)
-    |> add_brand_filter(params)
-    |> add_is_electric_filter(params)
+    conditions =
+      dynamic(true)
+      |> add_body_type_filter(params)
+      |> add_brand_filter(params)
+      |> add_is_electric_filter(params)
 
     CarData
     |> join(:left, [car], brand in CarBrand, on: car.car_brand_id == brand.id, as: :brand)
-    |> where([car,brand], ^conditions)
+    |> where([car, brand], ^conditions)
     |> preload(:car_brand)
     |> Repo.all()
   end
@@ -179,7 +183,7 @@ defmodule TestApi.Schema do
   def create_car_data(attrs \\ %{}) do
     %CarData{}
     |> CarData.changeset(attrs)
-    |> Repo.insert() #returning: [:id]
+    |> Repo.insert()
   end
 
   @doc """

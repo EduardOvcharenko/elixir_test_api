@@ -18,7 +18,27 @@ defmodule TestApi.Schema.CarData do
     car_data
     |> cast(attrs, [:car_brand_id, :model, :year, :body_type, :is_electric])
     |> validate_required([:car_brand_id, :model, :year, :body_type, :is_electric])
-    |> validate_inclusion(:year,  Enum.to_list(Application.get_env(:test_api,  TestApi.Schema.CarData)[:car_data_min_year]..DateTime.utc_now().year))
-    |> validate_inclusion(:body_type,   Application.get_env(:test_api,  TestApi.Schema.CarData)[:body_type_enum])
+    |> validate_inclusion(
+      :body_type,
+      Application.get_env(:test_api, TestApi.Schema.CarData)[:body_type_enum]
+    )
+    |> validate_year(:year)
+  end
+
+  defp validate_year(changeset, field, options \\ []) do
+    min_year = Application.get_env(:test_api, TestApi.Schema.CarData)[:car_data_min_year]
+    max_year = DateTime.utc_now().year
+
+    validate_change(changeset, field, fn _, year ->
+      if year >= min_year && year <= max_year do
+        []
+      else
+        [
+          {field,
+           options[:message] ||
+             "is invalid, value must be between range #{min_year} - #{max_year}"}
+        ]
+      end
+    end)
   end
 end

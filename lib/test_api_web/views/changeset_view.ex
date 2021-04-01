@@ -20,6 +20,9 @@ defmodule TestApiWeb.ChangesetView do
   defp get_rules(description, validation: :required),
     do: %{description: description, rule: :required}
 
+  defp get_rules(description, _),
+    do: %{description: description}
+
   def translate_errors(changeset) do
     Ecto.Changeset.traverse_errors(changeset, &translate_error/1)
   end
