@@ -5,6 +5,8 @@ defmodule TestApiWeb.FallbackController do
   See `Phoenix.Controller.action_fallback/1` for more details.
   """
   use TestApiWeb, :controller
+  alias Core.Errors.JsonSchemaError
+  alias Core.Errors.JobError
 
   # This clause handles errors returned by Ecto's insert/update/delete.
   def call(conn, {:error, %Ecto.Changeset{} = changeset}) do
@@ -20,5 +22,11 @@ defmodule TestApiWeb.FallbackController do
     |> put_status(:not_found)
     |> put_view(TestApiWeb.ErrorView)
     |> render(:"404")
+  end
+
+  def call(conn, %JsonSchemaError{} = error) do
+    conn
+    |> put_status(422)
+    |> json(JobError.dump(error))
   end
 end

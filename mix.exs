@@ -43,7 +43,11 @@ defmodule TestApi.MixProject do
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
-      {:credo, "~> 1.5", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
+      {:schemata, "~> 0.1.0", git: "https://github.com/edenlabllc/schemata.git"},
+      {:jvalid, "~> 0.5.2"},
+      {:eview, "~> 0.15.0"},
+      {:redix, "~> 0.7.1"}
     ]
   end
 

@@ -209,7 +209,6 @@ defmodule TestApiWeb.CarDataControllerTest do
       conn =
         get(conn, Routes.car_data_path(conn, :index), %{
           brand: "",
-          body_type: "",
           is_electric: true
         })
 
@@ -277,19 +276,24 @@ defmodule TestApiWeb.CarDataControllerTest do
       conn = post(conn, Routes.car_data_path(conn, :create), @invalid_attrs_is_electric)
 
       assert %{
-               "errors" => %{
-                 "invalid" => [
-                   %{
-                     "entry" => "is_electric",
-                     "entry_type" => "json_data_property",
-                     "rules" => %{
-                       "description" => "is invalid",
-                       "params" => "boolean",
+               "invalid" => [
+                 %{
+                   "entry" => "$.is_electric",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "type mismatch. Expected boolean but got integer",
+                       "params" => %{"actual" => "integer", "expected" => "boolean"},
+                       "raw_description" =>
+                         "type mismatch. Expected %{expected} but got %{actual}",
                        "rule" => "cast"
                      }
-                   }
-                 ]
-               }
+                   ]
+                 }
+               ],
+               "message" =>
+                 "Validation failed. You can find validators description at our API Manifest: http://docs.apimanifest.apiary.io/#introduction/interacting-with-api/errors.",
+               "type" => "validation_failed"
              } = json_response(conn, 422)
     end
 
@@ -297,19 +301,23 @@ defmodule TestApiWeb.CarDataControllerTest do
       conn = post(conn, Routes.car_data_path(conn, :create), @invalid_attrs_body_type)
 
       assert %{
-               "errors" => %{
-                 "invalid" => [
-                   %{
-                     "entry" => "body_type",
-                     "entry_type" => "json_data_property",
-                     "rules" => %{
-                       "description" => "is invalid",
-                       "params" => ["sedan", "coupe", "pickup"],
+               "invalid" => [
+                 %{
+                   "entry" => "$.body_type",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "value is not allowed in enum",
+                       "params" => %{"values" => ["sedan", "coupe", "pickup"]},
+                       "raw_description" => "value is not allowed in enum",
                        "rule" => "inclusion"
                      }
-                   }
-                 ]
-               }
+                   ]
+                 }
+               ],
+               "message" =>
+                 "Validation failed. You can find validators description at our API Manifest: http://docs.apimanifest.apiary.io/#introduction/interacting-with-api/errors.",
+               "type" => "validation_failed"
              } = json_response(conn, 422)
     end
 
@@ -320,17 +328,15 @@ defmodule TestApiWeb.CarDataControllerTest do
       conn = post(conn, Routes.car_data_path(conn, :create), @invalid_attrs_year)
 
       assert %{
-               "errors" => %{
-                 "invalid" => [
-                   %{
-                     "entry" => "year",
-                     "entry_type" => "json_data_property",
-                     "rules" => %{
-                       "description" => message
-                     }
+               "invalid" => [
+                 %{
+                   "entry" => "year",
+                   "entry_type" => "json_data_property",
+                   "rules" => %{
+                     "description" => "is invalid, value must be between range 1886 - 2021"
                    }
-                 ]
-               }
+                 }
+               ]
              } = json_response(conn, 422)
     end
   end

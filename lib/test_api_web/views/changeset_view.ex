@@ -23,6 +23,7 @@ defmodule TestApiWeb.ChangesetView do
   defp get_rules(description, _),
     do: %{description: description}
 
+  @spec translate_errors(Ecto.Changeset.t()) :: %{optional(atom) => [binary | map]}
   def translate_errors(changeset) do
     Ecto.Changeset.traverse_errors(changeset, &translate_error/1)
   end
@@ -30,6 +31,6 @@ defmodule TestApiWeb.ChangesetView do
   def render("error.json", %{changeset: changeset}) do
     # When encoded, the changeset returns its errors
     # as a JSON object. So we just pass it forward.
-    %{errors: %{invalid: build_err(changeset.errors)}}
+    %{invalid: build_err(changeset.errors)}
   end
 end

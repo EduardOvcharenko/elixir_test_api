@@ -17,11 +17,6 @@ defmodule TestApi.Schema.CarData do
   def changeset(car_data, attrs) do
     car_data
     |> cast(attrs, [:car_brand_id, :model, :year, :body_type, :is_electric])
-    |> validate_required([:car_brand_id, :model, :year, :body_type, :is_electric])
-    |> validate_inclusion(
-      :body_type,
-      Application.get_env(:test_api, TestApi.Schema.CarData)[:body_type_enum]
-    )
     |> validate_year(:year)
   end
 
