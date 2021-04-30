@@ -105,10 +105,10 @@ defmodule TestApi.Schema do
   alias TestApi.Schema.CarData
 
   defp add_brand_filter(conditions, params) do
-    brand_name = Map.get(params, "brand")
+    brand_name = Map.get(params, "car_brand")
 
     if brand_name != nil do
-      dynamic([c, b], b.name == ^brand_name and ^conditions)
+      dynamic([c, b], c.car_brand == ^brand_name and ^conditions)
     else
       conditions
     end
@@ -142,9 +142,7 @@ defmodule TestApi.Schema do
       |> add_is_electric_filter(params)
 
     CarData
-    |> join(:left, [car], brand in CarBrand, on: car.car_brand_id == brand.id, as: :brand)
-    |> where([car, brand], ^conditions)
-    |> preload(:car_brand)
+    |> where([car], ^conditions)
     |> Repo.all()
   end
 

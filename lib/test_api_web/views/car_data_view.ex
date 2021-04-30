@@ -12,7 +12,7 @@ defmodule TestApiWeb.CarDataView do
 
   def render("car_data.json", %{car_data: car_data}) do
     %{
-      brand: car_data.car_brand.name,
+      car_brand: car_data.car_brand,
       model: car_data.model,
       year: car_data.year,
       body_type: car_data.body_type,
@@ -26,7 +26,7 @@ defmodule TestApiWeb.CarDataView do
       model: car_data.model,
       year: car_data.year,
       body_type: car_data.body_type,
-      car_brand_id: car_data.car_brand_id,
+      car_brand: car_data.car_brand,
       is_electric: car_data.is_electric
     }
   end

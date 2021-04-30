@@ -8,15 +8,16 @@ defmodule TestApi.Schema.CarData do
     field :is_electric, :boolean, default: false
     field :model, :string
     field :year, :integer
+    field :car_brand, :string
 
-    belongs_to :car_brand, TestApi.Schema.CarBrand, type: :binary_id
+    # belongs_to :car_brand, TestApi.Schema.CarBrand, type: :binary_id
     timestamps()
   end
 
   @doc false
   def changeset(car_data, attrs) do
     car_data
-    |> cast(attrs, [:car_brand_id, :model, :year, :body_type, :is_electric])
+    |> cast(attrs, [:car_brand, :model, :year, :body_type, :is_electric])
     |> validate_year(:year)
   end
 

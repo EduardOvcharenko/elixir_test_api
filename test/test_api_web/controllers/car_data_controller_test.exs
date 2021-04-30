@@ -2,22 +2,13 @@ defmodule TestApiWeb.CarDataControllerTest do
   use TestApiWeb.ConnCase
 
   alias TestApi.Schema.CarData
-  alias TestApi.Schema.CarBrand
   alias TestApi.Repo
   alias TestApi.Schema
+  alias TestApi.Cache.Cache
 
-  setup %{conn: conn} do
-    create_car_brands()
-    create_car_data()
-    {:ok, conn: put_req_header(conn, "accept", "application/json")}
-  end
-
-  defp create_car_brands do
-    Repo.insert!(%CarBrand{id: "307f491e-e05a-4898-8ff3-f71c0280330e", name: "Toyota"})
-    Repo.insert!(%CarBrand{id: "07e526ae-d93b-4ba0-aa37-bb4446c87b3d", name: "Ferrari"})
-    Repo.insert!(%CarBrand{id: "24851bbf-9519-4e37-9de3-8d1b11eca666", name: "BMW"})
-    Repo.insert!(%CarBrand{id: "abcf229c-be01-46a4-b977-bce4ce35b5db", name: "Tesla"})
-  end
+  @table :car_brand_cache
+  @cache_key "nhsta"
+  @car_brands ["ASTON MARTIN", "TESLA", "JAGUAR", "FERRARI"]
 
   defp create_car_data do
     Repo.insert!(%CarData{
@@ -25,7 +16,7 @@ defmodule TestApiWeb.CarDataControllerTest do
       year: 2011,
       body_type: "sedan",
       is_electric: false,
-      car_brand_id: "07e526ae-d93b-4ba0-aa37-bb4446c87b3d"
+      car_brand: "FERRARI"
     })
 
     Repo.insert!(%CarData{
@@ -33,7 +24,7 @@ defmodule TestApiWeb.CarDataControllerTest do
       year: 2012,
       body_type: "coupe",
       is_electric: true,
-      car_brand_id: "07e526ae-d93b-4ba0-aa37-bb4446c87b3d"
+      car_brand: "FERRARI"
     })
 
     Repo.insert!(%CarData{
@@ -41,7 +32,7 @@ defmodule TestApiWeb.CarDataControllerTest do
       year: 2013,
       body_type: "coupe",
       is_electric: true,
-      car_brand_id: "07e526ae-d93b-4ba0-aa37-bb4446c87b3d"
+      car_brand: "FERRARI"
     })
 
     Repo.insert!(%CarData{
@@ -49,29 +40,36 @@ defmodule TestApiWeb.CarDataControllerTest do
       year: 2013,
       body_type: "sedan",
       is_electric: true,
-      car_brand_id: "abcf229c-be01-46a4-b977-bce4ce35b5db"
+      car_brand: "TESLA"
     })
   end
 
   describe "index" do
+    setup %{conn: conn} do
+      create_car_data()
+      Cache.start(:car_brand_cache, [:set, :public, :named_table])
+      :ets.insert(@table, {@cache_key, @car_brands})
+      {:ok, conn: put_req_header(conn, "accept", "application/json")}
+    end
+
     test "lists car_data by valid filter", %{conn: conn} do
       conn =
         get(conn, Routes.car_data_path(conn, :index), %{
-          brand: "Ferrari",
+          car_brand: "FERRARI",
           body_type: "coupe",
           is_electric: true
         })
 
       assert [
                %{
-                 "brand" => "Ferrari",
+                 "car_brand" => "FERRARI",
                  "body_type" => "coupe",
                  "is_electric" => true,
                  "model" => "F70",
                  "year" => 2012
                },
                %{
-                 "brand" => "Ferrari",
+                 "car_brand" => "FERRARI",
                  "body_type" => "coupe",
                  "is_electric" => true,
                  "model" => "F80",
@@ -81,25 +79,25 @@ defmodule TestApiWeb.CarDataControllerTest do
     end
 
     test "lists car_data by brand filter", %{conn: conn} do
-      conn = get(conn, Routes.car_data_path(conn, :index), %{brand: "Ferrari"})
+      conn = get(conn, Routes.car_data_path(conn, :index), %{car_brand: "FERRARI"})
 
       assert [
                %{
                  "body_type" => "sedan",
-                 "brand" => "Ferrari",
+                 "car_brand" => "FERRARI",
                  "is_electric" => false,
                  "model" => "F60",
                  "year" => 2011
                },
                %{
-                 "brand" => "Ferrari",
+                 "car_brand" => "FERRARI",
                  "body_type" => "coupe",
                  "is_electric" => true,
                  "model" => "F70",
                  "year" => 2012
                },
                %{
-                 "brand" => "Ferrari",
+                 "car_brand" => "FERRARI",
                  "body_type" => "coupe",
                  "is_electric" => true,
                  "model" => "F80",
@@ -110,18 +108,18 @@ defmodule TestApiWeb.CarDataControllerTest do
 
     test "lists car_data by brand and body_type filter", %{conn: conn} do
       conn =
-        get(conn, Routes.car_data_path(conn, :index), %{brand: "Ferrari", body_type: "coupe"})
+        get(conn, Routes.car_data_path(conn, :index), %{car_brand: "FERRARI", body_type: "coupe"})
 
       assert [
                %{
-                 "brand" => "Ferrari",
+                 "car_brand" => "FERRARI",
                  "body_type" => "coupe",
                  "is_electric" => true,
                  "model" => "F70",
                  "year" => 2012
                },
                %{
-                 "brand" => "Ferrari",
+                 "car_brand" => "FERRARI",
                  "body_type" => "coupe",
                  "is_electric" => true,
                  "model" => "F80",
@@ -131,18 +129,19 @@ defmodule TestApiWeb.CarDataControllerTest do
     end
 
     test "lists car_data by brand and is_electric filter", %{conn: conn} do
-      conn = get(conn, Routes.car_data_path(conn, :index), %{brand: "Ferrari", is_electric: true})
+      conn =
+        get(conn, Routes.car_data_path(conn, :index), %{car_brand: "FERRARI", is_electric: true})
 
       assert [
                %{
-                 "brand" => "Ferrari",
+                 "car_brand" => "FERRARI",
                  "body_type" => "coupe",
                  "is_electric" => true,
                  "model" => "F70",
                  "year" => 2012
                },
                %{
-                 "brand" => "Ferrari",
+                 "car_brand" => "FERRARI",
                  "body_type" => "coupe",
                  "is_electric" => true,
                  "model" => "F80",
@@ -156,14 +155,14 @@ defmodule TestApiWeb.CarDataControllerTest do
 
       assert [
                %{
-                 "brand" => "Ferrari",
+                 "car_brand" => "FERRARI",
                  "body_type" => "coupe",
                  "is_electric" => true,
                  "model" => "F70",
                  "year" => 2012
                },
                %{
-                 "brand" => "Ferrari",
+                 "car_brand" => "FERRARI",
                  "body_type" => "coupe",
                  "is_electric" => true,
                  "model" => "F80",
@@ -178,14 +177,14 @@ defmodule TestApiWeb.CarDataControllerTest do
 
       assert [
                %{
-                 "brand" => "Ferrari",
+                 "car_brand" => "FERRARI",
                  "body_type" => "coupe",
                  "is_electric" => true,
                  "model" => "F70",
                  "year" => 2012
                },
                %{
-                 "brand" => "Ferrari",
+                 "car_brand" => "FERRARI",
                  "body_type" => "coupe",
                  "is_electric" => true,
                  "model" => "F80",
@@ -197,50 +196,58 @@ defmodule TestApiWeb.CarDataControllerTest do
     test "lists car_data by invalid filter", %{conn: conn} do
       conn =
         get(conn, Routes.car_data_path(conn, :index), %{
-          brand: "Toyoda",
+          car_brand: "Toyoda",
           body_type: "coupe",
           is_electric: true
         })
 
-      assert [] = json_response(conn, 200)["data"]
-    end
-
-    test "lists car_data by empty filter", %{conn: conn} do
-      conn =
-        get(conn, Routes.car_data_path(conn, :index), %{
-          brand: "",
-          is_electric: true
-        })
-
-      assert [] = json_response(conn, 200)["data"]
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.car_brand",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "value is not allowed in enum",
+                       "params" => %{"values" => ["ASTON MARTIN", "TESLA", "JAGUAR", "FERRARI"]},
+                       "raw_description" => "value is not allowed in enum",
+                       "rule" => "inclusion"
+                     }
+                   ]
+                 }
+               ],
+               "message" =>
+                 "Validation failed. You can find validators description at our API Manifest: http://docs.apimanifest.apiary.io/#introduction/interacting-with-api/errors.",
+               "type" => "validation_failed"
+             } = json_response(conn, 422)
     end
   end
 
   @create_attrs %{
     id: "468234b8-e990-4b26-8936-4e4ef20431e9",
     body_type: "coupe",
-    car_brand_id: "abcf229c-be01-46a4-b977-bce4ce35b5db",
+    car_brand: "TESLA",
     is_electric: true,
     model: "4000",
     year: 2011
   }
 
   @invalid_attrs_is_electric %{
-    car_brand_id: "abcf229c-be01-46a4-b977-bce4ce35b5db",
+    car_brand: "TESLA",
     body_type: "sedan",
     is_electric: 1,
     model: "F40",
     year: 1998
   }
   @invalid_attrs_body_type %{
-    car_brand_id: "abcf229c-be01-46a4-b977-bce4ce35b5db",
+    car_brand: "TESLA",
     body_type: "aaa",
     is_electric: false,
     model: "F40",
     year: 1998
   }
   @invalid_attrs_year %{
-    car_brand_id: "abcf229c-be01-46a4-b977-bce4ce35b5db",
+    car_brand: "TESLA",
     body_type: "sedan",
     is_electric: false,
     model: "F40",
@@ -255,7 +262,7 @@ defmodule TestApiWeb.CarDataControllerTest do
                "id" => id,
                "body_type" => "coupe",
                "is_electric" => true,
-               "car_brand_id" => "abcf229c-be01-46a4-b977-bce4ce35b5db",
+               "car_brand" => "TESLA",
                "model" => "4000",
                "year" => 2011
              } = json_response(conn, 201)
@@ -263,10 +270,10 @@ defmodule TestApiWeb.CarDataControllerTest do
       result = Schema.get_car_data!(id)
 
       assert %{
-               id: id,
+               id: ^id,
                body_type: "coupe",
                is_electric: true,
-               car_brand_id: "abcf229c-be01-46a4-b977-bce4ce35b5db",
+               car_brand: "TESLA",
                model: "4000",
                year: 2011
              } = result
@@ -333,7 +340,7 @@ defmodule TestApiWeb.CarDataControllerTest do
                    "entry" => "year",
                    "entry_type" => "json_data_property",
                    "rules" => %{
-                     "description" => "is invalid, value must be between range 1886 - 2021"
+                     "description" => ^message
                    }
                  }
                ]

@@ -8,6 +8,13 @@
 use Mix.Config
 
 config :test_api,
+  http_adapter: HTTPoison
+
+config :test_api,
+        TestApi.Integrations.Nhtsa,
+        url: "https://vpic.nhtsa.dot.gov/api/vehicles/getallmakes?format=json"
+
+config :test_api,
   ecto_repos: [TestApi.Repo]
 
 config :test_api,

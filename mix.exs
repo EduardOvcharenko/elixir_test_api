@@ -47,7 +47,10 @@ defmodule TestApi.MixProject do
       {:schemata, "~> 0.1.0", git: "https://github.com/edenlabllc/schemata.git"},
       {:jvalid, "~> 0.5.2"},
       {:eview, "~> 0.15.0"},
-      {:redix, "~> 0.7.1"}
+      {:redix, "~> 0.7.1"},
+      {:httpoison, "~> 1.8"},
+      {:ets, "~> 0.8"},
+      {:mox, "~> 0.5.2", only: :test}
     ]
   end
 
